@@ -31,6 +31,13 @@ export default function LoginPage() {
 
     try {
       await login(username, password)
+      const state = useAuthStore.getState()
+      console.log('[v0] Login successful, state:', {
+        user: state.user?.username,
+        accessiblePages: state.accessiblePages?.length,
+        accessibleCategories: state.accessibleCategories?.length,
+        isAuthenticated: state.isAuthenticated,
+      })
       router.push(redirectUrl)
     } catch (err) {
       if (err instanceof Error) {

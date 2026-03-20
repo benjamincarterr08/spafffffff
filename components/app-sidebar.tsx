@@ -91,6 +91,12 @@ export function AppSidebar() {
   const pathname = usePathname()
   const { accessiblePages, accessibleCategories, user } = useAuthStore()
   
+  console.log('[v0] AppSidebar render:', {
+    accessiblePages,
+    accessibleCategories,
+    user: user?.username,
+  })
+  
   const groupedPages = groupPagesByCategory(accessiblePages, accessibleCategories)
 
   return (

@@ -16,7 +16,15 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const { user, roles } = useAuthStore()
-  const { data: stats } = useSWR<DashboardStats>('/stats/dashboard', fetcher)
+  const { data: stats, error: statsError, isLoading: statsLoading } = useSWR<DashboardStats>('/stats/dashboard', fetcher)
+  
+  console.log('[v0] Dashboard render:', {
+    user: user?.username,
+    roles,
+    stats,
+    statsError,
+    statsLoading,
+  })
 
   const statCards = [
     {

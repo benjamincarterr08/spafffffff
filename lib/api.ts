@@ -30,13 +30,18 @@ async function fetchWithAuth<T>(
     (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`
   }
   
+  console.log('[v0] API request:', options.method || 'GET', path, 'token:', !!token)
+  
   const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers,
   })
   
+  console.log('[v0] API response:', path, 'status:', response.status)
+  
   if (!response.ok) {
     const errorText = await response.text()
+    console.log('[v0] API error:', path, 'error:', errorText)
     throw new ApiError(errorText || response.statusText, response.status)
   }
   
@@ -45,7 +50,9 @@ async function fetchWithAuth<T>(
     return undefined as T
   }
   
-  return response.json() as Promise<T>
+  const data = await response.json() as T
+  console.log('[v0] API data:', path, data)
+  return data
 }
 
 export const api = {
