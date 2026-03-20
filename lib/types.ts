@@ -126,10 +126,30 @@ export interface FileWithRelations extends File {
 }
 
 // Auth types
+export interface LoginUser {
+  uid: number
+  username: string
+  email: string
+  display_name: string
+  pfp_url: string | null
+}
+
+export interface LoginRole {
+  rid: number
+  role_display_name: string
+  role_fa_icon: string
+  role_colour: string
+}
+
 export interface LoginResponse {
-  access_token: string
-  token_type: string
-  user: UserFull
+  success: boolean
+  message: string
+  data: {
+    type: string
+    user: LoginUser
+    roles: LoginRole[]
+    access_token?: string
+  }
 }
 
 export interface AccessCheckResponse {

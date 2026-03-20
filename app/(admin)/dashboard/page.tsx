@@ -104,7 +104,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {roles.length > 0 ? (
+              {roles && roles.length > 0 ? (
                 roles.map((role) => (
                   <span
                     key={role.rid}

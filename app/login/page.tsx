@@ -56,6 +56,7 @@ export default function LoginPage() {
               width={80}
               height={80}
               className="rounded-lg"
+              style={{ width: 'auto', height: 'auto' }}
             />
           </div>
           <div>

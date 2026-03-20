@@ -39,23 +39,29 @@ export const useAuthStore = create<AuthState>()(
         try {
           // Call the login endpoint
           const response = await api.post<LoginResponse>('/auth/login', {
-            username,
+            identifier: username,
             password,
           })
           
+          if (!response.success || !response.data?.user) {
+            throw new Error(response.message || 'Login failed')
+          }
+          
+          const { user: loginUser, access_token } = response.data
+          
           // Store token in localStorage for API client
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('auth_token', response.access_token)
+          if (typeof window !== 'undefined' && access_token) {
+            localStorage.setItem('auth_token', access_token)
           }
           
           // Load full user data
-          const userFull = await api.get<UserFull>(`/users/${response.user.uid}/full`)
-          const accessiblePages = await api.get<Page[]>(`/users/${response.user.uid}/accessible-pages`)
-          const accessibleCategories = await api.get<Category[]>(`/users/${response.user.uid}/accessible-categories`)
+          const userFull = await api.get<UserFull>(`/users/${loginUser.uid}/full`)
+          const accessiblePages = await api.get<Page[]>(`/users/${loginUser.uid}/accessible-pages`)
+          const accessibleCategories = await api.get<Category[]>(`/users/${loginUser.uid}/accessible-categories`)
           
           set({
             user: userFull,
-            token: response.access_token,
+            token: access_token || null,
             roles: userFull.roles,
             accessiblePages,
             accessibleCategories,
