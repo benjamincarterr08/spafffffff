@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -21,11 +20,10 @@ import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/lib/api"
 
 const STATUS_OPTIONS = [
-  { value: "Active", color: "green" },
-  { value: "Inactive", color: "gray" },
-  { value: "Pending", color: "yellow" },
-  { value: "Suspended", color: "orange" },
-  { value: "Blocked", color: "red" },
+  { value: "active", label: "Active" },
+  { value: "inactive", label: "Inactive" },
+  { value: "pending", label: "Pending" },
+  { value: "suspended", label: "Suspended" },
 ]
 
 export default function NewCustomerPage() {
@@ -35,31 +33,34 @@ export default function NewCustomerPage() {
 
   const [formData, setFormData] = useState({
     name: "",
+    username: "",
     email: "",
-    phone: "",
-    address: "",
-    status: "Active",
-    status_color: "green",
-    notes: "",
+    password: "",
+    confirmPassword: "",
+    status: "active",
   })
-
-  const handleStatusChange = (status: string) => {
-    const option = STATUS_OPTIONS.find((o) => o.value === status)
-    setFormData({
-      ...formData,
-      status,
-      status_color: option?.color || "gray",
-    })
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError(null)
 
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match")
+      setIsSubmitting(false)
+      return
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters")
+      setIsSubmitting(false)
+      return
+    }
+
     try {
-      const response = await api.post<{ cust_id: number }>("/customers", formData)
-      router.push(`/customers/${response.cust_id}`)
+      const { confirmPassword, ...submitData } = formData
+      const response = await api.post<{ customer_id: number }>("/customers", submitData)
+      router.push(`/customers/${response.customer_id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create customer")
       setIsSubmitting(false)
@@ -94,13 +95,41 @@ export default function NewCustomerPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="name">Display Name *</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username">Username *</Label>
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) =>
+                    setFormData({ ...formData, username: e.target.value })
+                  }
+                  placeholder="johndoe"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  placeholder="john@example.com"
                   required
                 />
               </div>
@@ -109,7 +138,9 @@ export default function NewCustomerPage() {
                 <Label htmlFor="status">Status</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={handleStatusChange}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, status: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -117,7 +148,7 @@ export default function NewCustomerPage() {
                   <SelectContent>
                     {STATUS_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
-                        {option.value}
+                        {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -125,51 +156,32 @@ export default function NewCustomerPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="password">Password *</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
+                  id="password"
+                  type="password"
+                  value={formData.password}
                   onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
+                    setFormData({ ...formData, password: e.target.value })
                   }
+                  placeholder="Minimum 6 characters"
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="confirmPassword">Confirm Password *</Label>
                 <Input
-                  id="phone"
-                  value={formData.phone}
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
                   onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
+                    setFormData({ ...formData, confirmPassword: e.target.value })
                   }
+                  placeholder="Re-enter password"
+                  required
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Textarea
-                id="address"
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-                rows={3}
-              />
             </div>
 
             <div className="flex justify-end gap-2 pt-4">

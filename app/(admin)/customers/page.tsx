@@ -33,17 +33,17 @@ export default function CustomersPage() {
 
   const columns: Column<Customer>[] = [
     {
-      key: "cust_id",
+      key: "customer_id",
       header: "ID",
       sortable: true,
     },
     {
-      key: "name",
-      header: "Name",
+      key: "username",
+      header: "Username",
       sortable: true,
       render: (customer) => (
         <div>
-          <div className="font-medium">{customer.name}</div>
+          <div className="font-medium">{customer.username}</div>
           {customer.email && (
             <div className="text-sm text-muted-foreground">{customer.email}</div>
           )}
@@ -51,15 +51,11 @@ export default function CustomersPage() {
       ),
     },
     {
-      key: "phone",
-      header: "Phone",
-    },
-    {
       key: "status",
       header: "Status",
       sortable: true,
       render: (customer) => (
-        <StatusBadge status={customer.status} color={customer.status_color} />
+        <StatusBadge status={customer.status} />
       ),
     },
     {
@@ -77,19 +73,19 @@ export default function CustomersPage() {
       render: (customer) => (
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild>
-            <Link href={`/customers/${customer.cust_id}`}>
+            <Link href={`/customers/${customer.customer_id}`}>
               <FontAwesomeIcon icon={faEye} className="h-4 w-4" />
             </Link>
           </Button>
           <Button variant="ghost" size="icon" asChild>
-            <Link href={`/customers/${customer.cust_id}/edit`}>
+            <Link href={`/customers/${customer.customer_id}/edit`}>
               <FontAwesomeIcon icon={faPencil} className="h-4 w-4" />
             </Link>
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setDeleteId(customer.cust_id)}
+            onClick={() => setDeleteId(customer.customer_id)}
           >
             <FontAwesomeIcon icon={faTrash} className="h-4 w-4 text-destructive" />
           </Button>
@@ -125,7 +121,7 @@ export default function CustomersPage() {
         columns={columns}
         data={customers || []}
         isLoading={isLoading}
-        searchKey="name"
+        searchKey="username"
         searchPlaceholder="Search customers..."
       />
 

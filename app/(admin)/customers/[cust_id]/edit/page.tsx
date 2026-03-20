@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -23,11 +22,10 @@ import { api, fetcher } from "@/lib/api"
 import type { Customer } from "@/lib/types"
 
 const STATUS_OPTIONS = [
-  { value: "Active", color: "green" },
-  { value: "Inactive", color: "gray" },
-  { value: "Pending", color: "yellow" },
-  { value: "Suspended", color: "orange" },
-  { value: "Blocked", color: "red" },
+  { value: "active", label: "Active" },
+  { value: "inactive", label: "Inactive" },
+  { value: "pending", label: "Pending" },
+  { value: "suspended", label: "Suspended" },
 ]
 
 export default function EditCustomerPage({
@@ -46,36 +44,21 @@ export default function EditCustomerPage({
   const [formError, setFormError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: "",
+    username: "",
     email: "",
-    phone: "",
-    address: "",
-    status: "Active",
-    status_color: "green",
-    notes: "",
+    status: "active",
   })
 
   useEffect(() => {
     if (customer) {
       setFormData({
-        name: customer.name || "",
+        name: customer.username || "",
+        username: customer.username || "",
         email: customer.email || "",
-        phone: customer.phone || "",
-        address: customer.address || "",
-        status: customer.status || "Active",
-        status_color: customer.status_color || "green",
-        notes: customer.notes || "",
+        status: customer.status || "active",
       })
     }
   }, [customer])
-
-  const handleStatusChange = (status: string) => {
-    const option = STATUS_OPTIONS.find((o) => o.value === status)
-    setFormData({
-      ...formData,
-      status,
-      status_color: option?.color || "gray",
-    })
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -141,7 +124,7 @@ export default function EditCustomerPage({
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="name">Display Name *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -153,26 +136,19 @@ export default function EditCustomerPage({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={handleStatusChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUS_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.value}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="username">Username *</Label>
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) =>
+                    setFormData({ ...formData, username: e.target.value })
+                  }
+                  required
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -180,43 +156,30 @@ export default function EditCustomerPage({
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, status: value })
                   }
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Textarea
-                id="address"
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-                rows={3}
-              />
             </div>
 
             <div className="flex justify-end gap-2 pt-4">

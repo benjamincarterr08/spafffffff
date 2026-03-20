@@ -11,9 +11,9 @@ import {
   faTrash,
   faUser,
   faEnvelope,
-  faPhone,
   faCalendar,
   faShoppingCart,
+  faAt,
 } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -85,8 +85,8 @@ export default function CustomerDetailPage({
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{customer.name}</h1>
-            <p className="text-muted-foreground">Customer #{customer.cust_id}</p>
+            <h1 className="text-2xl font-bold">{customer.username}</h1>
+            <p className="text-muted-foreground">Customer #{customer.customer_id}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -114,7 +114,14 @@ export default function CustomerDetailPage({
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Status</span>
-              <StatusBadge status={customer.status} color={customer.status_color} />
+              <StatusBadge status={customer.status} />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground flex items-center gap-2">
+                <FontAwesomeIcon icon={faAt} className="h-3 w-3" />
+                Username
+              </span>
+              <span>{customer.username}</span>
             </div>
             {customer.email && (
               <div className="flex items-center justify-between">
@@ -123,21 +130,6 @@ export default function CustomerDetailPage({
                   Email
                 </span>
                 <span>{customer.email}</span>
-              </div>
-            )}
-            {customer.phone && (
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <FontAwesomeIcon icon={faPhone} className="h-3 w-3" />
-                  Phone
-                </span>
-                <span>{customer.phone}</span>
-              </div>
-            )}
-            {customer.address && (
-              <div className="flex items-start justify-between">
-                <span className="text-muted-foreground">Address</span>
-                <span className="text-right max-w-[200px]">{customer.address}</span>
               </div>
             )}
             {customer.created_at && (
@@ -164,19 +156,19 @@ export default function CustomerDetailPage({
               <div className="space-y-3">
                 {purchases.slice(0, 5).map((purchase) => (
                   <Link
-                    key={purchase.pur_id}
-                    href={`/purchases/${purchase.pur_id}`}
+                    key={purchase.purchase_id}
+                    href={`/purchases/${purchase.purchase_id}`}
                     className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                   >
                     <div>
-                      <div className="font-medium">Purchase #{purchase.pur_id}</div>
+                      <div className="font-medium">{purchase.title || `Purchase #${purchase.purchase_id}`}</div>
                       <div className="text-sm text-muted-foreground">
                         {purchase.created_at
                           ? new Date(purchase.created_at).toLocaleDateString()
                           : "-"}
                       </div>
                     </div>
-                    <StatusBadge status={purchase.status} color={purchase.status_color} />
+                    <StatusBadge status={purchase.status} />
                   </Link>
                 ))}
                 {purchases.length > 5 && (
@@ -194,22 +186,11 @@ export default function CustomerDetailPage({
         </Card>
       </div>
 
-      {customer.notes && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Notes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="whitespace-pre-wrap">{customer.notes}</p>
-          </CardContent>
-        </Card>
-      )}
-
       <ConfirmDialog
         open={showDelete}
         onOpenChange={setShowDelete}
         title="Delete Customer"
-        description={`Are you sure you want to delete "${customer.name}"? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${customer.username}"? This action cannot be undone.`}
         confirmText="Delete"
         onConfirm={handleDelete}
         isLoading={isDeleting}
