@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           // Call the login endpoint
           const response = await api.post<LoginResponse>('/auth/login', {
-            username,
+            identifier: username,
             password,
           })
           
