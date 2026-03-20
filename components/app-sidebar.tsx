@@ -35,19 +35,23 @@ function getIcon(iconName: string | null): IconDefinition {
 
 // Group pages by category
 function groupPagesByCategory(
-  pages: Page[],
-  categories: Category[]
+  pages: Page[] | undefined | null,
+  categories: Category[] | undefined | null
 ): { category: Category | null; pages: Page[] }[] {
+  // Handle undefined/null inputs
+  const safePages = pages || []
+  const safeCategories = categories || []
+  
   const categoryMap = new Map<number | null, Page[]>()
   
   // Initialize with empty arrays for each category
-  categories.forEach((cat) => {
+  safeCategories.forEach((cat) => {
     categoryMap.set(cat.cid, [])
   })
   categoryMap.set(null, []) // For uncategorized pages
   
   // Assign pages to categories
-  pages.forEach((page) => {
+  safePages.forEach((page) => {
     const catId = page.category_id
     if (categoryMap.has(catId)) {
       categoryMap.get(catId)!.push(page)
@@ -60,7 +64,7 @@ function groupPagesByCategory(
   const result: { category: Category | null; pages: Page[] }[] = []
   
   // Add categorized pages (sorted by category sort_order)
-  const sortedCategories = [...categories].sort((a, b) => a.sort_order - b.sort_order)
+  const sortedCategories = [...safeCategories].sort((a, b) => a.sort_order - b.sort_order)
   sortedCategories.forEach((cat) => {
     const categoryPages = categoryMap.get(cat.cid) || []
     if (categoryPages.length > 0) {
@@ -98,7 +102,9 @@ export function AppSidebar() {
             alt="OmsiDev"
             width={32}
             height={32}
-            className="rounded w-8 h-auto"
+            className="rounded"
+            loading="eager"
+            style={{ width: 32, height: 'auto' }}
           />
           <span className="text-lg font-semibold">OmsiDev Admin</span>
         </Link>
