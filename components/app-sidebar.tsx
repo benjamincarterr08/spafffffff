@@ -38,9 +38,9 @@ function groupPagesByCategory(
   pages: Page[] | undefined | null,
   categories: Category[] | undefined | null
 ): { category: Category | null; pages: Page[] }[] {
-  // Handle undefined/null inputs
-  const safePages = pages || []
-  const safeCategories = categories || []
+  // Handle undefined/null/non-array inputs
+  const safePages = Array.isArray(pages) ? pages : []
+  const safeCategories = Array.isArray(categories) ? categories : []
   
   const categoryMap = new Map<number | null, Page[]>()
   
