@@ -50,9 +50,45 @@ async function fetchWithAuth<T>(
     return undefined as T
   }
   
-  const data = await response.json() as T
-  console.log('[v0] API data:', path, data)
-  return data
+  const json = await response.json()
+  console.log('[v0] API data:', path, json)
+  
+  // Unwrap standard API response format { data, success, message }
+  // Return the unwrapped data if it's a standard response, otherwise return as-is
+  if (json && typeof json === 'object' && 'data' in json && 'success' in json) {
+    return json.data as T
+  }
+  
+  return json as T
+}
+
+// Fetch without auto-unwrapping (for endpoints where we need success/message)
+async function fetchRaw<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const token = await getAuthToken()
+  
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  }
+  
+  if (token) {
+    (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`
+  }
+  
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers,
+  })
+  
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new ApiError(errorText || response.statusText, response.status)
+  }
+  
+  return response.json() as Promise<T>
 }
 
 export const api = {
@@ -60,6 +96,13 @@ export const api = {
   
   post: <T>(path: string, data?: unknown) =>
     fetchWithAuth<T>(path, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+  
+  // POST without auto-unwrapping response (for auth endpoints)
+  postRaw: <T>(path: string, data?: unknown) =>
+    fetchRaw<T>(path, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
     }),

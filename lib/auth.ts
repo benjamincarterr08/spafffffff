@@ -38,8 +38,8 @@ export const useAuthStore = create<AuthState>()(
         console.log('[v0] Login started for:', username)
         
         try {
-          // Call the login endpoint
-          const response = await api.post<LoginResponse>('/auth/login', {
+          // Call the login endpoint (use postRaw to get full response with success/message)
+          const response = await api.postRaw<LoginResponse>('/auth/login', {
             identifier: username,
             password,
           })
@@ -50,26 +50,43 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(response.message || 'Login failed')
           }
           
-          const { user: loginUser, access_token } = response.data
-          console.log('[v0] Login user:', loginUser, 'token:', !!access_token)
+          const { user: loginUser, roles: loginRoles } = response.data
+          console.log('[v0] Login user:', loginUser)
           
-          // Store token in localStorage for API client
-          if (typeof window !== 'undefined' && access_token) {
-            localStorage.setItem('auth_token', access_token)
+          // Generate JWT token locally
+          const tokenResponse = await fetch('/api/auth/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: loginUser, roles: loginRoles }),
+          })
+          const tokenData = await tokenResponse.json()
+          
+          if (!tokenData.success || !tokenData.token) {
+            throw new Error('Failed to generate authentication token')
           }
           
-          // Load full user data
+          const generatedToken = tokenData.token
+          console.log('[v0] Generated JWT token')
+          
+          // Store token in localStorage for API client
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('auth_token', generatedToken)
+          }
+          
+          // Load full user data - API auto-unwraps .data from responses
           console.log('[v0] Fetching user full data for uid:', loginUser.uid)
           const userFull = await api.get<UserFull>(`/users/${loginUser.uid}/full`)
           console.log('[v0] userFull:', userFull)
+          
           const accessiblePages = await api.get<Page[]>(`/users/${loginUser.uid}/accessible-pages`)
-          console.log('[v0] accessiblePages:', accessiblePages)
+          console.log('[v0] accessiblePages:', accessiblePages?.length)
+          
           const accessibleCategories = await api.get<Category[]>(`/users/${loginUser.uid}/accessible-categories`)
-          console.log('[v0] accessibleCategories:', accessibleCategories)
+          console.log('[v0] accessibleCategories:', accessibleCategories?.length)
           
           set({
             user: userFull,
-            token: access_token || null,
+            token: generatedToken,
             roles: userFull.roles,
             accessiblePages,
             accessibleCategories,
@@ -107,7 +124,7 @@ export const useAuthStore = create<AuthState>()(
           const response = await api.get<AccessCheckResponse>(
             `/users/${user.uid}/can-access-url?page_url=${encodeURIComponent(url)}`
           )
-          return response.can_access
+          return response?.can_access ?? false
         } catch {
           return false
         }
@@ -125,8 +142,10 @@ export const useAuthStore = create<AuthState>()(
           console.log('[v0] refreshUserData: fetching user data...')
           const userFull = await api.get<UserFull>(`/users/${user.uid}/full`)
           console.log('[v0] refreshUserData: got userFull:', userFull?.username)
+          
           const accessiblePages = await api.get<Page[]>(`/users/${user.uid}/accessible-pages`)
           console.log('[v0] refreshUserData: got accessiblePages:', accessiblePages?.length)
+          
           const accessibleCategories = await api.get<Category[]>(`/users/${user.uid}/accessible-categories`)
           console.log('[v0] refreshUserData: got accessibleCategories:', accessibleCategories?.length)
           
